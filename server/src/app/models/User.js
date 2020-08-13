@@ -16,4 +16,4 @@ class User extends Sequelize.Model {
   }
 }
 
-export default User;
+module.exports = User;
