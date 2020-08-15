@@ -1,9 +1,13 @@
 const Yup = require('yup');
-const { startOfHour, parseISO, isBefore } = require('date-fns');
+const {
+  startOfHour, parseISO, isBefore, format,
+} = require('date-fns');
+const pt = require('date-fns/locale/pt');
 
 const User = require('../models/User');
 const Appointment = require('../models/Appointment');
 const File = require('../models/File');
+const Notification = require('../schemas/Notification');
 
 class AppointmentController {
   async index(request, response) {
@@ -73,7 +77,6 @@ class AppointmentController {
         date: hourStart,
       },
     });
-
     if (isNotAvailable) {
       return response.status(400).json(
         { error: 'Appointment date is not available.' },
@@ -84,6 +87,19 @@ class AppointmentController {
       user_id: request.userId,
       provider_id,
       date: hourStart,
+    });
+
+    // Notify appointment to provider
+    const user = await User.findByPk(request.userId);
+    const formattedDate = format(
+      hourStart,
+      "'dia 'dd' de 'MMMM', às 'H:mm'h'",
+      { locale: pt },
+    );
+    await Notification.create({
+      content: `Novo agendamento de ${user.name} para o ${formattedDate}`,
+      user_id: request.userId,
+      provider_id,
     });
 
     return response.json(appointment);
