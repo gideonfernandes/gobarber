@@ -61,6 +61,13 @@ class AppointmentController {
       );
     }
 
+    // Check if trying create appointment with the same user
+    if (provider_id === request.userId) {
+      return response.status(400).json(
+        { error: 'You cannot create appointments with yourself.' },
+      );
+    }
+
     // Check if is not a past date
     const hourStart = startOfHour(parseISO(date));
     if (isBefore(hourStart, new Date())) {
