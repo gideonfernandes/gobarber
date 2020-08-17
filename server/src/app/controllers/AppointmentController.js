@@ -9,6 +9,8 @@ const Appointment = require('../models/Appointment');
 const File = require('../models/File');
 const Notification = require('../schemas/Notification');
 
+const Mail = require('../../lib/Mail');
+
 class AppointmentController {
   async index(request, response) {
     const { page = 1 } = request.query;
@@ -113,7 +115,15 @@ class AppointmentController {
   }
 
   async delete(request, response) {
-    const appointment = await Appointment.findByPk(request.params.id);
+    const appointment = await Appointment.findByPk(request.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'provider',
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
 
     if (appointment.user_id !== request.userId) {
       return response.status(401).json(
@@ -131,6 +141,13 @@ class AppointmentController {
 
     appointment.canceled_at = new Date();
     await appointment.save();
+
+    // Send email with canceled appointment information to provider
+    await Mail.sendMail({
+      to: `${appointment.provider.name} <${appointment.provider.email}>`,
+      subject: 'Agendamento cancelado!',
+      text: 'Você tem um novo agendamento cancelado de Gideon Fernandes.',
+    });
 
     return response.json(appointment);
   }
