@@ -9,7 +9,8 @@ const Appointment = require('../models/Appointment');
 const File = require('../models/File');
 const Notification = require('../schemas/Notification');
 
-const Mail = require('../../lib/Mail');
+const Queue = require('../../lib/Queue');
+const CancellationMail = require('../jobs/CancellationMail');
 
 class AppointmentController {
   async index(request, response) {
@@ -18,7 +19,7 @@ class AppointmentController {
     const appointments = await Appointment.findAll({
       where: { user_id: request.userId, canceled_at: null },
       order: ['date'],
-      attributes: ['id', 'date'],
+      attributes: ['id', 'date', 'past', 'cancelable'],
       limit: 20,
       offset: (page - 1) * 20,
       include: [
@@ -122,6 +123,11 @@ class AppointmentController {
           as: 'provider',
           attributes: ['name', 'email'],
         },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name'],
+        },
       ],
     });
 
@@ -142,12 +148,7 @@ class AppointmentController {
     appointment.canceled_at = new Date();
     await appointment.save();
 
-    // Send email with canceled appointment information to provider
-    await Mail.sendMail({
-      to: `${appointment.provider.name} <${appointment.provider.email}>`,
-      subject: 'Agendamento cancelado!',
-      text: 'Você tem um novo agendamento cancelado de Gideon Fernandes.',
-    });
+    await Queue.add(CancellationMail.key, { appointment });
 
     return response.json(appointment);
   }
