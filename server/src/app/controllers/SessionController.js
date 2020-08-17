@@ -2,6 +2,7 @@ const Yup = require('yup');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/User');
+const File = require('../models/File');
 const authConfig = require('../../config/auth');
 
 class SessionController {
@@ -17,7 +18,16 @@ class SessionController {
 
     const { email, password } = request.body;
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
 
     if (!user) {
       return response.status(401).json({ error: 'Credentials does not match.' });
@@ -27,13 +37,17 @@ class SessionController {
       return response.status(401).json({ error: 'Credentials does not match.' });
     }
 
-    const { id, name } = user;
+    const {
+      id, name, avatar, provider,
+    } = user;
 
     return response.json({
       user: {
         id,
         name,
         email,
+        avatar,
+        provider,
       },
       token: jwt.sign({ id }, authConfig.secret, {
         expiresIn: authConfig.expiresIn,
