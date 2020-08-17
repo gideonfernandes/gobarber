@@ -1,6 +1,6 @@
 const Yup = require('yup');
 const {
-  startOfHour, parseISO, isBefore, format,
+  startOfHour, parseISO, isBefore, format, subHours,
 } = require('date-fns');
 const pt = require('date-fns/locale/pt');
 
@@ -108,6 +108,29 @@ class AppointmentController {
       user_id: request.userId,
       provider_id,
     });
+
+    return response.json(appointment);
+  }
+
+  async delete(request, response) {
+    const appointment = await Appointment.findByPk(request.params.id);
+
+    if (appointment.user_id !== request.userId) {
+      return response.status(401).json(
+        { error: 'Only owners can delete yours appointments.' },
+      );
+    }
+
+    // Verify if appointment date is available to cancell (2hours in advance)
+    const dateWithSub = subHours(appointment.date, 2);
+    if (isBefore(dateWithSub, new Date())) {
+      return response.status(401).json(
+        { error: 'Only appointments with 2 hours in advance can be canceled.' },
+      );
+    }
+
+    appointment.canceled_at = new Date();
+    await appointment.save();
 
     return response.json(appointment);
   }
