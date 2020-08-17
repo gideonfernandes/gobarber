@@ -1,3 +1,5 @@
+require('dotenv/config');
+
 const express = require('express');
 const path = require('path');
 const Youch = require('youch');
@@ -33,9 +35,13 @@ class App {
 
   exceptionHandler() {
     this.server.use(async (err, request, response, next) => {
-      const errors = await new Youch(err, request).toJSON();
+      if (process.env.NODE_ENV === 'development') {
+        const errors = await new Youch(err, request).toJSON();
 
-      return response.status(500).json(errors);
+        return response.status(500).json(errors);
+      }
+
+      return response.status(500).json({ error: 'Server error.' });
     });
   }
 }
