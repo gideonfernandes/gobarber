@@ -13,11 +13,11 @@ export default function RouteWrapper({
   const signed = false;
 
   if (!signed && isPrivate) {
-    return <Redirect to="/" />;
+    return <Redirect to={{ pathname: '/' }} />;
   };
 
   if(signed && !isPrivate) {
-    return <Redirect to="/dashboard" />;
+    return <Redirect to={{ pathname: '/dashboard' }} />;
   };
 
   const Layout = signed ? DefaultLayout : AuthLayout;
