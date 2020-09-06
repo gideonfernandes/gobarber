@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Form, Input } from '@rocketseat/unform';
 import * as Yup from 'yup';
@@ -40,7 +41,7 @@ export default function SignIn() {
         />
 
         <button type="submit">Acessar</button>
-        <a href="/register">Criar conta gratuita</a>
+        <Link to="/register">Criar conta gratuita</Link>
       </Form>
     </>
   )

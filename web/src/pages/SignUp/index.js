@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Form, Input } from '@rocketseat/unform';
 import * as Yup from 'yup';
 
@@ -44,7 +45,7 @@ export default function SignUp() {
         />
 
         <button type="submit">Criar conta</button>
-        <a href="/">Já tenho login</a>
+        <Link to="/">Já tenho login</Link>
       </Form>
     </>
   )
