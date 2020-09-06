@@ -6,9 +6,12 @@ import './config/ReactotronConfig';
 import history from './services/history';
 import Routes from './routes';
 
+import GlobalStyle from './styles/global';
+
 export default function App() {
   return (
     <Router history={history}>
+      <GlobalStyle />
       <Routes />
     </Router>
   );
